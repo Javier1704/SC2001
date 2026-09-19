@@ -3,9 +3,6 @@ import matplotlib.pyplot as plt
 import time
 
 def hybrid_sort(arr, start, end, S):
-    if (end - start) <= 1:
-        return 0
-
     if (end - start) <= S:
         return insertion_sort(arr, start, end)
 
@@ -84,7 +81,7 @@ def insertion_sort(arr, start, end):
     return comparisons
 
 def part_ci():
-    S = 20 
+    S = 5 
     X = 100000
 
     sizes = [1000, 10000, 100000, 1000000, 10000000]
@@ -107,10 +104,10 @@ def part_ci():
     plt.show()
 
 def part_cii():
-    n = 1000
-    X = 1000
+    n = 1000000
+    X = 100000
 
-    S = list(range(0, 101))
+    S = list(range(1, 101))
 
     comparison_results = []
 
@@ -143,18 +140,26 @@ def part_ciii():
     for n in sizes:
         original_arr = rng.integers(low = 1, high = X + 1, size = n).tolist()
         comparison_results = []
+        comparison_results_time = []
 
         for s in S:
             arr = original_arr.copy()
+            start_time = time.process_time()
             comparisons = hybrid_sort(arr, 0, len(arr), s)
+            end_time = time.process_time()
+            run_time = end_time - start_time
             comparison_results.append(comparisons)
-            print("Size = ", n, "S = ", s, "Comparisons = ", comparisons)
+            comparison_results_time.append(run_time)
+            print(f"Size = {n}, S = {s}, comparisons = {comparisons}, runtime = {run_time}")
 
         min_comparisons = min(comparison_results)
-        best_index = comparison_results.index(min_comparisons)
-        best_S = S[best_index]
+        min_runtime = min(comparison_results_time)
+        best_index_key_comparison = comparison_results.index(min_comparisons)
+        best_index_runtime = comparison_results_time.index(min_runtime)
+        best_S_key_comparison = S[best_index_key_comparison]
+        best_S_runtime = S[best_index_runtime]
 
-        print(f"For n = {n}, best S = {best_S}, with {min_comparisons} comparisons.")
+        print(f"For n = {n}, best S by key comparison = {best_S_key_comparison}, with {min_comparisons} comparisons, best S by runtime = {best_S_runtime}, with {min_runtime}.")
 
         plt.figure()
 
@@ -166,12 +171,22 @@ def part_ciii():
 
         plt.show(block = False)
 
+        plt.figure()
+
+        plt.plot(S, comparison_results_time, linestyle= '--', marker= 'o')
+
+        plt.title(f"size {n}: S against runtime")
+        plt.xlabel("Threshold S")
+        plt.ylabel("Runtime")
+
+        plt.show(block = False)
+
     plt.show()
 
 def part_d():
     X = 100000
     n = 10000000
-    S = 5 # For some arbitrary value determined in part C
+    S = 16 
 
     rng = np.random.default_rng()
 
