@@ -186,7 +186,7 @@ def part_ciii():
 def part_d():
     X = 100000
     n = 10000000
-    S = 16 
+    S = 1
 
     rng = np.random.default_rng()
 
