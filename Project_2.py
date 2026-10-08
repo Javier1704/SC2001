@@ -134,6 +134,9 @@ def dijkstra_heap(graph, source):
     return dist, parent
 
 def generate_graph(V, E):
+    if V < 2 or E < V - 1 or E > V * (V - 1):
+        raise ValueError("Invalid number of vertices or edges")
+
     matrix = [[INF for _ in range(V)] for _ in range(V)]
     adj_list = [[] for _ in range(V)]
 
@@ -182,59 +185,90 @@ def measure_time(function, graph, source=0, repetitions=5):
 def run_experiment():
     V_values = [100, 200, 400, 800, 1200]
 
-    matrix_times = []
-    heap_times = []
+    repetitions = 5
 
-    for V in V_values:
-        E = 4 * V
+    cases = {
+        "Sparse": lambda V: 4 * V,
+        "Dense": lambda V: (V * (V - 1)) // 2
+    }
 
-        print("Testing V =", V, "E =", E)
+    results = {}
 
-        matrix, adj_list = generate_graph(V, E)
+    for graph_type, edge_formula in cases.items():
 
-        time_matrix = measure_time(
-            dijkstra_matrix,
-            matrix,
-            repetitions=5
+        matrix_times = []
+        heap_times = []
+
+        print(f"\n--- {graph_type} Graph ---")
+
+        for V in V_values:
+
+            E = edge_formula(V)
+
+            matrix, adj_list = generate_graph(V, E)
+
+            dist_matrix, _ = dijkstra_matrix(matrix, 0)
+            dist_heap, _ = dijkstra_heap(adj_list, 0)
+
+            assert dist_matrix == dist_heap
+
+            # Measure running time
+            time_matrix = measure_time(
+                dijkstra_matrix,
+                matrix,
+                repetitions=repetitions
+            )
+
+            time_heap = measure_time(
+                dijkstra_heap,
+                adj_list,
+                repetitions=repetitions
+            )
+
+            matrix_times.append(time_matrix)
+            heap_times.append(time_heap)
+
+            print(
+                f"V = {V}, E = {E}, "
+                f"Matrix = {time_matrix:.6f}s, "
+                f"Heap = {time_heap:.6f}s"
+            )
+
+        results[graph_type] = (matrix_times, heap_times)
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
+
+    for ax, (graph_type, times) in zip(axes, results.items()):
+
+        matrix_times, heap_times = times
+
+        ax.plot(
+            V_values,
+            matrix_times,
+            marker="o",
+            label="Adjacency Matrix + Array"
         )
 
-        time_heap = measure_time(
-            dijkstra_heap,
-            adj_list,
-            repetitions=5
+        ax.plot(
+            V_values,
+            heap_times,
+            marker="o",
+            label="Adjacency List + Min Heap"
         )
 
-        matrix_times.append(time_matrix)
-        heap_times.append(time_heap)
+        ax.set_title(f"{graph_type} Graph")
+        ax.set_xlabel("Number of Vertices |V|")
+        ax.grid(True)
+        ax.legend()
 
-        print("Matrix:", time_matrix)
-        print("Heap:", time_heap)
-        print()
+    axes[0].set_ylabel("Average Running Time (seconds)")
 
-    plt.figure()
+    fig.suptitle("Dijkstra: Sparse vs Dense Graphs")
+    fig.tight_layout()
 
-    plt.plot(
-        V_values,
-        matrix_times,
-        marker="o",
-        label="Adjacency Matrix + Array"
-    )
-
-    plt.plot(
-        V_values,
-        heap_times,
-        marker="o",
-        label="Adjacency List + Min Heap"
-    )
-
-    plt.xlabel("Number of Vertices |V|")
-    plt.ylabel("Average Running Time (seconds)")
-    plt.title("Dijkstra Algorithm: Empirical Running Time")
-
-    plt.legend()
-    plt.grid()
-
+    plt.savefig("dijkstra_sparse_dense.png", dpi=180)
     plt.show()
+
 
 if __name__ == "__main__":
     run_experiment()
