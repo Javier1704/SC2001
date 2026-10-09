@@ -210,9 +210,8 @@ def run_experiment():
             dist_matrix, _ = dijkstra_matrix(matrix, 0)
             dist_heap, _ = dijkstra_heap(adj_list, 0)
 
-            assert dist_matrix == dist_heap
+            assert dist_matrix == dist_heap, "Shortest paths do not match!"
 
-            # Measure running time
             time_matrix = measure_time(
                 dijkstra_matrix,
                 matrix,
@@ -236,38 +235,40 @@ def run_experiment():
 
         results[graph_type] = (matrix_times, heap_times)
 
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
-
-    for ax, (graph_type, times) in zip(axes, results.items()):
+    for graph_type, times in results.items():
 
         matrix_times, heap_times = times
 
-        ax.plot(
+        plt.figure(figsize=(8, 5))
+
+        plt.plot(
             V_values,
             matrix_times,
             marker="o",
             label="Adjacency Matrix + Array"
         )
 
-        ax.plot(
+        plt.plot(
             V_values,
             heap_times,
             marker="o",
             label="Adjacency List + Min Heap"
         )
 
-        ax.set_title(f"{graph_type} Graph")
-        ax.set_xlabel("Number of Vertices |V|")
-        ax.grid(True)
-        ax.legend()
+        plt.title(f"Dijkstra: {graph_type} Graph")
+        plt.xlabel("Number of Vertices |V|")
+        plt.ylabel("Average Running Time (seconds)")
 
-    axes[0].set_ylabel("Average Running Time (seconds)")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
 
-    fig.suptitle("Dijkstra: Sparse vs Dense Graphs")
-    fig.tight_layout()
+        plt.savefig(
+            f"dijkstra_{graph_type.lower()}.png",
+            dpi=180
+        )
 
-    plt.savefig("dijkstra_sparse_dense.png", dpi=180)
-    plt.show()
+        plt.show()
 
 
 if __name__ == "__main__":
